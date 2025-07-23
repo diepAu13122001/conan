@@ -10,8 +10,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 import firebaseConfig from "./firebaseConfig.js";
 
-
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -40,7 +38,7 @@ async function updateLinkData(links) {
 }
 
 async function checkUpdateTime() {
-  const res = await fetch("../data.json");
+  const res = await fetch("../../data.json");
   const data = await res.json();
   const lastUpdated = new Date(data.updated);
   const now = new Date();
@@ -69,11 +67,12 @@ async function getLinkByEp() {
 }
 
 // -------------------------
-const h1Ep = document.getElementById("ep");
 
 const webUrl = async () => await getLinkByEp();
 
 async function loadWeb(ep) {
+  const h1Ep = document.getElementById("ep");
+  console.log(h1Ep);
   const web = document.getElementById("web");
   web.src = await webUrl();
   await updateCurrentEpisode(ep);
