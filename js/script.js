@@ -6,31 +6,23 @@ import {
   doc,
   getDoc,
   setDoc,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import firebaseConfig from "./firebaseConfig.js";
 
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAbx3bL74am6Nodr3AD-4cCaoo01-0O5-4",
-  authDomain: "conan-phim.firebaseapp.com",
-  projectId: "conan-phim",
-  storageBucket: "conan-phim.firebasestorage.app",
-  messagingSenderId: "771353230997",
-  appId: "1:771353230997:web:28e151de17d625fc5d259c",
-  measurementId: "G-R5Z7T812RR",
-};
+
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const docRef = doc(db, "vars", "N6zh9Dgufi7eKOILGhwd");
 
+// --------------------------------------
 // firestore
 async function getCurrentEpisode() {
   const docSnap = await getDoc(docRef);
-
   if (docSnap.exists()) {
     const data = docSnap.data();
-    console.log("Current Episode:", data.epsode);
     return data.epsode;
   } else {
     console.log("No such document!");
@@ -42,16 +34,50 @@ async function updateCurrentEpisode(newEpisode) {
   await setDoc(docRef, { epsode: newEpisode }, { merge: true });
 }
 
+async function updateLinkData(links) {
+  await setDoc(docRef, { links: links }, { merge: true });
+  await setDoc(docRef, { update: serverTimestamp() }, { merge: true });
+}
+
+async function checkUpdateTime() {
+  const res = await fetch("../data.json");
+  const data = await res.json();
+  const lastUpdated = new Date(data.updated);
+  const now = new Date();
+
+  const isOld =
+    now.getFullYear() > lastUpdated.getFullYear() ||
+    now.getMonth() > lastUpdated.getMonth();
+  if (isOld) {
+    console.log("🔄 Updating links via Pyodide...");
+    await updateLinkData(data.links);
+  } else {
+    console.log("✅ No update needed this month.");
+  }
+}
+
+async function getLinkByEp() {
+  let curEp = await getCurrentEpisode();
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    return data.links[curEp];
+  } else {
+    console.log("No such document!");
+    return null;
+  }
+}
+
 // -------------------------
 const h1Ep = document.getElementById("ep");
 
-const webUrl = (ep) =>
-  `https://boctem.com/xem-phim/tham-tu-lung-danh-conan-1-tap-${ep}-server-1/`;
+const webUrl = async () => await getLinkByEp();
 
 async function loadWeb(ep) {
   const web = document.getElementById("web");
-  web.src = webUrl(ep);
+  web.src = await webUrl();
   await updateCurrentEpisode(ep);
+  await checkUpdateTime();
   h1Ep.textContent = ep;
 }
 // -------------------------
