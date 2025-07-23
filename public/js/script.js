@@ -54,8 +54,7 @@ async function checkUpdateTime() {
   }
 }
 
-async function getLinkByEp() {
-  let curEp = await getCurrentEpisode();
+async function getLinkByEp(curEp) {
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
     const data = docSnap.data();
@@ -68,16 +67,14 @@ async function getLinkByEp() {
 
 // -------------------------
 
-const webUrl = async () => await getLinkByEp();
+const webUrl = async (ep) => await getLinkByEp(ep);
 
 async function loadWeb(ep) {
   const h1Ep = document.getElementById("ep");
-  console.log(h1Ep);
+  h1Ep.textContent = await ep;
   const web = document.getElementById("web");
-  web.src = await webUrl();
+  web.src = await webUrl(ep);
   await updateCurrentEpisode(ep);
-  await checkUpdateTime();
-  h1Ep.textContent = ep;
 }
 // -------------------------
 document.getElementById("prev").addEventListener("click", async () => {
@@ -111,4 +108,5 @@ getCurrentEpisode().then(async (ep) => {
   } else {
     alert("Failed to load current episode.");
   }
+  await checkUpdateTime();
 });
