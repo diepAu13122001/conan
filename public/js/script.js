@@ -8,7 +8,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
-import firebaseConfig from "./firebaseConfig.js";
+import firebaseConfig from "./firebaseKeys.js";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
